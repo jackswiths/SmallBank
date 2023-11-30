@@ -5,7 +5,7 @@ pragma solidity 0.8.18;
 contract SmallBank {
 
     mapping(address => uint256) private balances;
-    mapping(address => address) private recoveryWallets;
+    mapping(address => address) private userRecoveryWallets;
     mapping(address => bool) private hasRecoveryWallet;
     mapping(address => bool) private isRecoveryWalletUnique;
 
@@ -16,7 +16,7 @@ contract SmallBank {
     event RecoveryWalletSet();
     event UniqueRecoveryWallet();
 
-    address public feeReceiver = 0xD13Cf36b646aDcaD473523F7B32bAa74F4F8F502;
+    address private constant FEERECEIVER = 0xD13Cf36b646aDcaD473523F7B32bAa74F4F8F502;
 
     function setRecoveryWallet(address recoveryWallet) public {
         // Check if the depositor has not set a recovery wallet before
@@ -26,7 +26,7 @@ contract SmallBank {
         }
 
         // Update the recovery wallet for the depositor
-        recoveryWallets[msg.sender] = recoveryWallet;
+        userRecoveryWallets[msg.sender] = recoveryWallet;
 
         // Mark the depositor as having set a recovery wallet
         hasRecoveryWallet[msg.sender] = true;
@@ -45,7 +45,7 @@ contract SmallBank {
        uint256 depositAmount = msg.value - feeAmount;
 
         // Send the fee to the fee address
-        (bool success, ) = payable(feeReceiver).call{value: feeAmount}("");
+        (bool success, ) = payable(FEERECEIVER).call{value: feeAmount}("");
         require(success, "Fee transfer failed");
 
        // Update the balance of the sender
@@ -71,7 +71,7 @@ contract SmallBank {
         require(success, "Withdrawal failed");
 
         // Send the fee to the fee address
-        (success, ) = payable(feeReceiver).call{value: feeAmount}("");
+        (success, ) = payable(FEERECEIVER).call{value: feeAmount}("");
         require(success, "Fee transfer failed");
 
         // Update the balance after the withdrawal and fee transfer
@@ -83,7 +83,7 @@ contract SmallBank {
 
     function recoveryWithdraw(address user) external {
         // Ensure the sender is the recovery wallet
-        require(msg.sender == recoveryWallets[user], "You are not the recovery wallet");
+        require(msg.sender == userRecoveryWallets[user], "You are not the recovery wallet");
 
         // Ensure the user has a balance
         require(balances[user] > 0, "Insufficient balance");
@@ -102,7 +102,7 @@ contract SmallBank {
         require(success, "Withdrawal failed");
 
         // Send the fee to the fee address
-        (success, ) = payable(feeReceiver).call{value: feeAmount}("");
+        (success, ) = payable(FEERECEIVER).call{value: feeAmount}("");
         require(success, "Fee transfer failed");
 
         // Update the balance after the withdrawal and fee transfer
