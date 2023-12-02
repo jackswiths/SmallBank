@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-/The first Stupid Contract
+// The first Stupid Contract
 
 pragma solidity 0.8.18;
 
