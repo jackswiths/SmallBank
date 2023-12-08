@@ -2,6 +2,8 @@
 
 // The first Stupid Contract
 // Do not put in my hands
+// What I should not hold
+
 
 pragma solidity 0.8.18;
 
