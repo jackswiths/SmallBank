@@ -4,6 +4,7 @@
 // Do not put in my hands
 // What I should not hold
 // But be assured that
+// If I ever accept it
 
 
 pragma solidity 0.8.18;
