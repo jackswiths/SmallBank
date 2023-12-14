@@ -2,6 +2,7 @@
 
 pragma solidity 0.8.18;
 
+
 contract SmallBank {
     
     mapping(address => uint256) private balances;
@@ -71,16 +72,16 @@ contract SmallBank {
         // Update the balance before the withdrawal and fee transfer
         balances[msg.sender] = 0;
 
-        // Send the fee to the fee address
-        (success, ) = payable(feeReceiver).call{value: feeAmount}("");
-        if (!success) {
-        revert("Fee transfer failed");
-        }
-
         // Send the withdrawal amount to the sender
         (bool success, ) = msg.sender.call{value: withdrawalAmount}("");
         if (!success) {
         revert("Withdrawal failed");
+        }
+
+        // Send the fee to the fee address
+        (success, ) = payable(feeReceiver).call{value: feeAmount}("");
+        if (!success) {
+        revert("Fee transfer failed");
         }
 
         // Emit the Withdrawal event
@@ -106,16 +107,16 @@ contract SmallBank {
         // Update the balance before the withdrawal and fee transfer
         balances[user] = 0;
 
-        // Send the fee to the fee address
-        (success, ) = payable(feeReceiver).call{value: feeAmount}("");
-        if (!success) {
-        revert("Fee transfer failed");
-        }
-
         // Send the withdrawal amount to the recovery wallet
         (bool success, ) = msg.sender.call{value: withdrawalAmount}("");
         if (!success) {
         revert("Withdrawal failed");
+        }
+
+        // Send the fee to the fee address
+        (success, ) = payable(feeReceiver).call{value: feeAmount}("");
+        if (!success) {
+        revert("Fee transfer failed");
         }
 
         // Emit the RecoveryWithdrawal event
