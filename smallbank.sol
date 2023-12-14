@@ -6,6 +6,7 @@
 // But be assured that
 // If I ever accept it
 // In the immaterial walls
+// And under lawscode
 
 
 pragma solidity 0.8.18;
