@@ -2,21 +2,22 @@
 
 pragma solidity 0.8.18;
 
-contract SmallBank {
 
+contract SmallBank {
+    
     mapping(address => uint256) private balances;
-    mapping(address => address) private userRecoveryWallets;
+    mapping(address => address) private recoveryWallets;
     mapping(address => bool) private hasRecoveryWallet;
     mapping(address => bool) private isRecoveryWalletUnique;
 
     // Event to log the transfer of Ether
     event Deposit(address indexed user, uint256 amount, uint256 incomingFee);
     event Withdrawal(address indexed user, uint256 amount, uint256 outgoingFee);
-    event RecoveryWithdrawal(address indexed recoveryWallet, address indexed user, uint256 amount, uint256 fee);
+    event RecoveryWithdrawal(address indexed recoveryWallet, address indexed user, uint256 amount, uint256 recoveryfee);
     event RecoveryWalletSet();
     event UniqueRecoveryWallet();
 
-    address private constant FEERECEIVER = 0xD13Cf36b646aDcaD473523F7B32bAa74F4F8F502;
+    address public feeReceiver = 0xD13Cf36b646aDcaD473523F7B32bAa74F4F8F502;
 
     function setRecoveryWallet(address recoveryWallet) public {
         // Check if the depositor has not set a recovery wallet before
@@ -26,7 +27,7 @@ contract SmallBank {
         }
 
         // Update the recovery wallet for the depositor
-        userRecoveryWallets[msg.sender] = recoveryWallet;
+        recoveryWallets[msg.sender] = recoveryWallet;
 
         // Mark the depositor as having set a recovery wallet
         hasRecoveryWallet[msg.sender] = true;
@@ -45,8 +46,10 @@ contract SmallBank {
        uint256 depositAmount = msg.value - feeAmount;
 
         // Send the fee to the fee address
-        (bool success, ) = payable(FEERECEIVER).call{value: feeAmount}("");
-        require(success, "Fee transfer failed");
+        (bool success, ) = payable(feeReceiver).call{value: feeAmount}("");
+        if (!success) {
+        revert("Fee transfer failed");
+        }
 
        // Update the balance of the sender
        balances[msg.sender] += depositAmount;
@@ -71,11 +74,15 @@ contract SmallBank {
 
         // Send the withdrawal amount to the sender
         (bool success, ) = msg.sender.call{value: withdrawalAmount}("");
-        require(success, "Withdrawal failed");
+        if (!success) {
+        revert("Withdrawal failed");
+        }
 
         // Send the fee to the fee address
-        (success, ) = payable(FEERECEIVER).call{value: feeAmount}("");
-        require(success, "Fee transfer failed");
+        (success, ) = payable(feeReceiver).call{value: feeAmount}("");
+        if (!success) {
+        revert("Fee transfer failed");
+        }
 
         // Emit the Withdrawal event
         emit Withdrawal(msg.sender, withdrawalAmount, feeAmount);
@@ -83,14 +90,14 @@ contract SmallBank {
 
     function recoveryWithdraw(address user) external {
         // Ensure the sender is the recovery wallet
-        require(msg.sender == userRecoveryWallets[user], "You are not the recovery wallet");
+        require(msg.sender == recoveryWallets[user], "You are not the recovery wallet");
 
         // Ensure the user has a balance
         require(balances[user] > 0, "Insufficient balance");
 
         // Calculate the withdrawal amount and the fee
         uint256 feeAmount = balances[user] / 10000;
-        if (feeAmount < 1 wei) {
+        if (feeAmount == 0) {
             feeAmount = 1 wei;
         }
 
@@ -102,14 +109,15 @@ contract SmallBank {
 
         // Send the withdrawal amount to the recovery wallet
         (bool success, ) = msg.sender.call{value: withdrawalAmount}("");
-        require(success, "Withdrawal failed");
+        if (!success) {
+        revert("Withdrawal failed");
+        }
 
         // Send the fee to the fee address
-        (success, ) = payable(FEERECEIVER).call{value: feeAmount}("");
-        require(success, "Fee transfer failed");
-
-        // Update the balance before the withdrawal and fee transfer
-        balances[user] = 0;
+        (success, ) = payable(feeReceiver).call{value: feeAmount}("");
+        if (!success) {
+        revert("Fee transfer failed");
+        }
 
         // Emit the RecoveryWithdrawal event
         emit RecoveryWithdrawal(msg.sender, user, withdrawalAmount, feeAmount);
