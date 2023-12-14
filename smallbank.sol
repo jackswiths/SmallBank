@@ -2,7 +2,6 @@
 
 pragma solidity 0.8.18;
 
-
 contract SmallBank {
     
     mapping(address => uint256) private balances;
