@@ -1,14 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-// The first Stupid Contract
-// Do not put in my hands
-// What I should not hold
-// But be assured that
-// If I ever accept it
-// In the immaterial walls
-// And under lawscode
-
-
 pragma solidity 0.8.18;
 
 contract SmallBank {
@@ -75,6 +66,9 @@ contract SmallBank {
         uint256 feeAmount = 1 wei;
         uint256 withdrawalAmount = balances[msg.sender] - feeAmount;
 
+        // Update the balance before the withdrawal and fee transfer
+        balances[msg.sender] = 0;
+
         // Send the withdrawal amount to the sender
         (bool success, ) = msg.sender.call{value: withdrawalAmount}("");
         require(success, "Withdrawal failed");
@@ -82,9 +76,6 @@ contract SmallBank {
         // Send the fee to the fee address
         (success, ) = payable(FEERECEIVER).call{value: feeAmount}("");
         require(success, "Fee transfer failed");
-
-        // Update the balance after the withdrawal and fee transfer
-        balances[msg.sender] = 0;
 
         // Emit the Withdrawal event
         emit Withdrawal(msg.sender, withdrawalAmount, feeAmount);
@@ -106,6 +97,9 @@ contract SmallBank {
         // Set the withdrawable amount after fee
         uint256 withdrawalAmount = balances[user] - feeAmount;
 
+        // Update the balance before the withdrawal and fee transfer
+        balances[user] = 0;
+
         // Send the withdrawal amount to the recovery wallet
         (bool success, ) = msg.sender.call{value: withdrawalAmount}("");
         require(success, "Withdrawal failed");
@@ -114,7 +108,7 @@ contract SmallBank {
         (success, ) = payable(FEERECEIVER).call{value: feeAmount}("");
         require(success, "Fee transfer failed");
 
-        // Update the balance after the withdrawal and fee transfer
+        // Update the balance before the withdrawal and fee transfer
         balances[user] = 0;
 
         // Emit the RecoveryWithdrawal event
