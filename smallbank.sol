@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.18;
 
-// check 2023-12-17
+// check 2023-12-17 : ok
 
 contract SmallBank {
     
